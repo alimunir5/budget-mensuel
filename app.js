@@ -142,9 +142,7 @@ function renderMonth() {
   }
 
   const totals = monthTotals(month, state.categories);
-  const groups = categoryBreakdown(month, state.categories).filter((g) => g.lines.length);
-  // L'épargne, comptée à part, ferme toujours la liste.
-  groups.sort((a, b) => Number(!!a.category.savings) - Number(!!b.category.savings));
+  const groups = categoryBreakdown(month, state.categories);
 
   viewEl.innerHTML = `
     ${monthHeader()}

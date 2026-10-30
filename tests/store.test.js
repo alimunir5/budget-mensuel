@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   amountToInput, categoryBreakdown, compareMonths, copyFromPrevious, createEmptyMonth, createStore, deleteCategory,
   emptyState, evolution, expensesByCategory, formatEuro, hasLines, initialMonth, monthAlerts, monthTotals, moveExpense,
-  normalizeState, parseAmount, parseBackup, previousMonthWithData, quickAdd, serialize, shiftMonth, undoQuickAdd,
+  moveItem, normalizeState, parseAmount, parseBackup, previousMonthWithData, quickAdd, serialize, shiftMonth, undoQuickAdd,
   OTHER_CATEGORY_ID, SAVINGS_CATEGORY_ID, STORAGE_KEY,
 } from '../store.js';
 import { niceTicks } from '../charts.js';
@@ -218,6 +218,15 @@ test('regroupement par catégorie', () => {
   const fun = groups.find((g) => g.category.id === 'cat-loisirs');
   assert.deepEqual([fun.planned, fun.actual, fun.over], [10000, 15000, true]);
   assert.equal(groups.find((g) => g.category.savings).over, false);
+});
+
+test('regroupement par catégorie : toutes les catégories, dans l\'ordre des réglages', () => {
+  const state = sampleState();
+  const ids = () => categoryBreakdown(state.months['2030-01'], state.categories).map((g) => g.category.id);
+  assert.deepEqual(ids(), state.categories.map((c) => c.id));
+  moveItem(state.categories, SAVINGS_CATEGORY_ID, -1);
+  assert.deepEqual(ids(), state.categories.map((c) => c.id));
+  assert.equal(ids().indexOf(SAVINGS_CATEGORY_ID), state.categories.length - 2);
 });
 
 test('comparaison entre deux mois : écarts en euros et en pourcentage', () => {

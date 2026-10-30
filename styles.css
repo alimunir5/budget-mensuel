@@ -45,7 +45,6 @@
   --accent: #4338ca; --on-accent: #ffffff;
   --hero-bg: #4338ca; --hero-ink: #ffffff; --hero-ink-2: #dcdaf9; --hero-negative: #ffffff;
   --danger: #c01f3e; --danger-bg: #fde8ec; --good: #0b7a43;
-  --bar: var(--cat); --track: color-mix(in srgb, var(--cat, #888) 16%, #ffffff); --group-tint: color-mix(in srgb, var(--cat, #888) 10%, #ffffff);
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --planned: #bcbcdc; --actual: #4338ca;
   --axis: #c5c5dd; --grid: #e6e6f3;
 }
@@ -56,7 +55,6 @@
   --accent: #8f88ff; --on-accent: #0e0d1c;
   --hero-bg: #322bb0; --hero-ink: #ffffff; --hero-ink-2: #dcdaf9; --hero-negative: #ffffff;
   --danger: #ff8fa3; --danger-bg: #431826; --good: #5be09a;
-  --bar: var(--cat); --track: color-mix(in srgb, var(--cat, #888) 22%, #1a1930); --group-tint: color-mix(in srgb, var(--cat, #888) 14%, #1a1930);
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --planned: #5f5e88; --actual: #8f88ff;
   --axis: #4b4a70; --grid: #2d2c4a;
 }
@@ -70,7 +68,7 @@
   --accent: #a94f2d; --on-accent: #ffffff;
   --hero-bg: #f4e3d3; --hero-ink: #2d231b; --hero-ink-2: #5f5145; --hero-negative: #a8261f;
   --danger: #a8261f; --danger-bg: #f9e4df; --good: #41702a;
-  --bar: var(--cat); --track: #efe5d8; --group-tint: var(--surface);
+  --track: #efe5d8; --group-tint: var(--surface);
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --planned: #cbbba9; --actual: #a94f2d;
   --axis: #d3c5b4; --grid: #efe5d8;
 }
@@ -81,10 +79,15 @@
   --accent: #e8926b; --on-accent: #2a150b;
   --hero-bg: #3b2a1f; --hero-ink: #f6ece1; --hero-ink-2: #d5c6b6; --hero-negative: #ffa094;
   --danger: #ffa094; --danger-bg: #43201b; --good: #a5d67f;
-  --bar: var(--cat); --track: #3a2f27; --group-tint: var(--surface);
+  --track: #3a2f27; --group-tint: var(--surface);
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --planned: #75675a; --actual: #e8926b;
   --axis: #524539; --grid: #352b23;
 }
+
+/* --cat n'existe que sur chaque carte : les jetons qui en dépendent doivent y être résolus, pas sur la racine. */
+[data-style="colore"][data-mode="light"] .group-category { --bar: var(--cat); --track: color-mix(in srgb, var(--cat) 16%, #ffffff); --group-tint: color-mix(in srgb, var(--cat) 10%, #ffffff); }
+[data-style="colore"][data-mode="dark"] .group-category { --bar: var(--cat); --track: color-mix(in srgb, var(--cat) 22%, #1a1930); --group-tint: color-mix(in srgb, var(--cat) 14%, #1a1930); }
+[data-style="doux"] .group-category { --bar: var(--cat); }
 
 /* Le bleu des dépenses est commun aux trois styles : le rouge reste réservé aux alertes. */
 [data-mode="light"] { --expense: #1f5fa8; }
