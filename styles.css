@@ -86,6 +86,10 @@
   --axis: #524539; --grid: #352b23;
 }
 
+/* Le bleu des dépenses est commun aux trois styles : le rouge reste réservé aux alertes. */
+[data-mode="light"] { --expense: #1f5fa8; }
+[data-mode="dark"] { --expense: #7db4f0; }
+
 /* ---------- Base ---------- */
 
 * { box-sizing: border-box; }
@@ -231,6 +235,34 @@ small { font-size: .8125rem; color: var(--ink-2); font-weight: 400; }
 
 .list-tools { display: flex; align-items: center; justify-content: space-between; min-height: 44px; margin-top: 4px; }
 .list-tools h2 { font-size: 1.125rem; font-weight: 700; }
+.list-tools-end { justify-content: flex-end; }
+
+/* Revenus et dépenses : chaque partie a son bandeau plein et son fond teinté. */
+.ledger-income { --ledger: var(--good); }
+.ledger-expense { --ledger: var(--expense); }
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: calc(var(--radius) + 4px);
+  background: color-mix(in srgb, var(--ledger) 14%, var(--bg));
+}
+.ledger-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-small);
+  background: var(--ledger);
+  color: var(--on-accent);
+}
+.ledger-head h2 { font-size: 1.125rem; font-weight: 700; }
+.ledger-total { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ledger-total small { color: inherit; font-weight: 500; }
+.ledger .btn { background: var(--surface); }
 
 .group { background: var(--surface); border-radius: var(--radius); overflow: hidden; }
 .group-category { background: var(--group-tint); }

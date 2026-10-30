@@ -2,7 +2,7 @@
 // Tous les montants sont stockés en centimes entiers pour éviter les erreurs d'arrondi.
 
 export const APP_ID = 'budget-mensuel';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const STORAGE_KEY = 'budget-mensuel.v1';
 export const OTHER_CATEGORY_ID = 'cat-autre';
 export const SAVINGS_CATEGORY_ID = 'cat-epargne';
@@ -122,7 +122,7 @@ export function copyFromPrevious(state, key) {
   if (!sourceKey) return null;
   const source = state.months[sourceKey];
   state.months[key] = {
-    incomes: source.incomes.map((i) => ({ ...i, id: uid() })),
+    incomes: source.incomes.map((i) => ({ ...i, id: uid(), actual: 0 })),
     expenses: source.expenses
       .filter((e) => e.type === 'fixed')
       .map((e) => ({ ...e, id: uid(), actual: 0, note: '' })),
@@ -145,22 +145,24 @@ export function monthTotals(month, categories) {
   const expenses = month.expenses.filter((e) => !isSavings(e));
   const saved = month.expenses.filter(isSavings);
 
-  const income = sum(month.incomes, (i) => i.amount);
+  const plannedIncome = sum(month.incomes, (i) => i.planned);
+  const actualIncome = sum(month.incomes, (i) => i.actual);
   const plannedExpenses = sum(expenses, (e) => e.planned);
   const actualExpenses = sum(expenses, (e) => e.actual);
   const plannedSavings = sum(saved, (e) => e.planned);
   const actualSavings = sum(saved, (e) => e.actual);
 
   return {
-    income,
+    plannedIncome,
+    actualIncome,
     plannedExpenses,
     actualExpenses,
     plannedSavings,
     actualSavings,
-    plannedRemaining: income - plannedExpenses - plannedSavings,
-    actualRemaining: income - actualExpenses - actualSavings,
-    plannedSavingsRate: income > 0 ? plannedSavings / income : null,
-    actualSavingsRate: income > 0 ? actualSavings / income : null,
+    plannedRemaining: plannedIncome - plannedExpenses - plannedSavings,
+    actualRemaining: actualIncome - actualExpenses - actualSavings,
+    plannedSavingsRate: plannedIncome > 0 ? plannedSavings / plannedIncome : null,
+    actualSavingsRate: actualIncome > 0 ? actualSavings / actualIncome : null,
   };
 }
 
@@ -226,7 +228,7 @@ export function compareMonths(state, keyA, keyB, basis) {
   return {
     rows,
     summary: {
-      income: delta(totalsA.income, totalsB.income),
+      income: delta(totalsA[field('Income')], totalsB[field('Income')]),
       expenses: delta(totalsA[field('Expenses')], totalsB[field('Expenses')]),
       savings: delta(totalsA[field('Savings')], totalsB[field('Savings')]),
       remaining: delta(totalsA[field('Remaining')], totalsB[field('Remaining')]),
@@ -359,7 +361,8 @@ export function normalizeState(raw) {
     const ids = new Set();
     const incomes = (Array.isArray(month.incomes) ? month.incomes : [])
       .filter((i) => i && typeof i === 'object')
-      .map((i) => ({ id: uniqueId(i.id, ids), name: text(i.name, 80), amount: cents(i.amount) }));
+      // Avant la version 2, un revenu n'avait qu'un montant : il sert alors de prévu et de réel.
+      .map((i) => ({ id: uniqueId(i.id, ids), name: text(i.name, 80), planned: cents(i.planned ?? i.amount), actual: cents(i.actual ?? i.amount) }));
     const expenses = (Array.isArray(month.expenses) ? month.expenses : [])
       .filter((e) => e && typeof e === 'object')
       .map((e) => ({

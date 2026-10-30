@@ -149,17 +149,27 @@ function renderMonth() {
   viewEl.innerHTML = `
     ${monthHeader()}
     ${recapCard(totals)}
-    <div class="list-tools">
-      <h2>Revenus</h2>
+    <div class="list-tools list-tools-end">
       <button type="button" class="link-btn" data-action="toggle-reorder" aria-pressed="${ui.reorder}">${ui.reorder ? 'Terminer' : 'Réorganiser'}</button>
     </div>
-    <section class="group">
-      ${month.incomes.map(incomeRow).join('')}
-      <button type="button" class="add-line" data-action="edit-income">+ Ajouter un revenu</button>
+    <section class="ledger ledger-income">
+      <header class="ledger-head">
+        <h2>Revenus</h2>
+        <span class="ledger-total">+ ${formatEuro(totals.actualIncome)} <small>/ ${formatEuro(totals.plannedIncome)}</small></span>
+      </header>
+      <div class="group">
+        ${month.incomes.map(incomeRow).join('')}
+        <button type="button" class="add-line" data-action="edit-income">+ Ajouter un revenu</button>
+      </div>
     </section>
-    <div class="list-tools"><h2>Dépenses</h2></div>
-    ${groups.map(expenseGroup).join('')}
-    <button type="button" class="btn" data-action="edit-expense">+ Nouvelle dépense</button>
+    <section class="ledger ledger-expense">
+      <header class="ledger-head">
+        <h2>Dépenses</h2>
+        <span class="ledger-total">− ${formatEuro(totals.actualExpenses)} <small>/ ${formatEuro(totals.plannedExpenses)}</small></span>
+      </header>
+      ${groups.map(expenseGroup).join('')}
+      <button type="button" class="btn" data-action="edit-expense">+ Nouvelle dépense</button>
+    </section>
     ${historySection(month)}
     <button type="button" class="link-btn link-danger" data-action="month-clear">Vider ce mois</button>`;
 }
@@ -175,7 +185,7 @@ function recapCard(t) {
       <table class="recap-table">
         <thead><tr><td></td><th scope="col">Prévu</th><th scope="col">Réel</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Revenus</th><td colspan="2">${formatEuro(t.income)}</td></tr>
+          <tr><th scope="row">Revenus</th><td>${formatEuro(t.plannedIncome)}</td><td>${formatEuro(t.actualIncome)}</td></tr>
           <tr><th scope="row">Dépenses</th><td>${formatEuro(t.plannedExpenses)}</td><td>${formatEuro(t.actualExpenses)}</td></tr>
           <tr><th scope="row">Épargne</th><td>${formatEuro(t.plannedSavings)}</td><td>${formatEuro(t.actualSavings)}</td></tr>
           <tr><th scope="row">Taux d'épargne</th><td>${rate(t.plannedSavingsRate)}</td><td>${rate(t.actualSavingsRate)}</td></tr>
@@ -198,7 +208,7 @@ function incomeRow(income) {
   }
   return `
     <button type="button" class="line" data-action="edit-income" data-id="${esc(income.id)}">
-      <span class="line-top"><span class="line-name">${esc(income.name)}</span><span class="line-amount">${formatEuro(income.amount)}</span></span>
+      <span class="line-top"><span class="line-name">${esc(income.name)}</span><span class="line-amount">${formatEuro(income.actual)} <small>/ ${formatEuro(income.planned)}</small></span></span>
     </button>`;
 }
 
@@ -396,25 +406,28 @@ function openIncomeSheet(id) {
     ${sheetHead(income ? 'Modifier le revenu' : 'Nouveau revenu')}
     <form id="income-form" novalidate>
       <label class="field"><span>Nom</span><input name="name" type="text" maxlength="80" autocomplete="off" value="${esc(income?.name)}"></label>
-      ${amountField('amount', 'Montant', income?.amount ?? 0)}
+      <div class="field-row">
+        ${amountField('actual', 'Réel', income?.actual ?? 0)}
+        ${amountField('planned', 'Prévu', income?.planned ?? 0)}
+      </div>
       <p class="error-text" id="income-error" hidden></p>
       <button type="submit" class="btn btn-primary">${income ? 'Terminé' : 'Ajouter'}</button>
       ${income ? `<button type="button" class="btn btn-danger" data-action="delete-income" data-id="${esc(income.id)}">Supprimer</button>` : ''}
-    </form>`, income ? 'input[name="amount"]' : 'input[name="name"]');
+    </form>`, income ? 'input[name="actual"]' : 'input[name="name"]');
 
   const form = $('#income-form', sheetEl);
   if (income) {
     form.addEventListener('input', () => {
-      const amounts = readAmounts(form, ['amount']);
+      const amounts = readAmounts(form, ['actual', 'planned']);
       if (!amounts) return;
-      income.amount = amounts.amount;
+      Object.assign(income, amounts);
       income.name = form.elements.name.value.trim() || income.name;
       commit();
     });
   }
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const amounts = readAmounts(form, ['amount']);
+    const amounts = readAmounts(form, ['actual', 'planned']);
     if (!amounts) return;
     if (!income) {
       const name = form.elements.name.value.trim();
@@ -425,7 +438,7 @@ function openIncomeSheet(id) {
         form.elements.name.focus();
         return;
       }
-      month.incomes.push({ id: uid(), name, amount: amounts.amount });
+      month.incomes.push({ id: uid(), name, ...amounts });
       commit();
     }
     closeSheet();

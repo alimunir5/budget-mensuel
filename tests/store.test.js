@@ -14,7 +14,7 @@ const expense = (id, categoryId, planned, actual = 0, extra = {}) => ({ id, name
 function sampleState() {
   const state = emptyState();
   state.months['2030-01'] = {
-    incomes: [{ id: 'i1', name: 'Paie', amount: 200000 }, { id: 'i2', name: 'Prime', amount: 5050 }],
+    incomes: [{ id: 'i1', name: 'Paie', planned: 200000, actual: 200000 }, { id: 'i2', name: 'Prime', planned: 5050, actual: 5050 }],
     expenses: [
       expense('rent', 'cat-logement', 80000, 80000),
       expense('food', 'cat-courses', 30000, 12345, { note: 'à vider' }),
@@ -65,14 +65,15 @@ test('saisie des montants', () => {
 test('pas d\'erreur d\'arrondi sur les sommes', () => {
   const state = emptyState();
   const month = createEmptyMonth(state, '2030-01');
-  month.incomes.push({ id: 'a', name: 'a', amount: parseAmount('0,10') }, { id: 'b', name: 'b', amount: parseAmount('0,20') });
-  assert.equal(monthTotals(month, state.categories).income, 30);
+  month.incomes.push({ id: 'a', name: 'a', planned: 0, actual: parseAmount('0,10') }, { id: 'b', name: 'b', planned: 0, actual: parseAmount('0,20') });
+  assert.equal(monthTotals(month, state.categories).actualIncome, 30);
 });
 
 test('totaux, argent restant et taux d\'épargne', () => {
   const state = sampleState();
   const t = monthTotals(state.months['2030-01'], state.categories);
-  assert.equal(t.income, 205050);
+  assert.equal(t.plannedIncome, 205050);
+  assert.equal(t.actualIncome, 205050);
   assert.equal(t.plannedExpenses, 120000);
   assert.equal(t.actualExpenses, 107345);
   assert.equal(t.plannedSavings, 20000);
@@ -96,7 +97,7 @@ test('alertes : poste, catégorie, argent restant', () => {
   let alerts = monthAlerts(month, state.categories);
   assert.deepEqual(alerts.map((a) => [a.kind, a.amount]), [['category', 5000], ['line', 5000]]);
 
-  month.incomes = [{ id: 'i', name: 'i', amount: 1000 }];
+  month.incomes = [{ id: 'i', name: 'i', planned: 1000, actual: 1000 }];
   alerts = monthAlerts(month, state.categories);
   assert.equal(alerts[0].kind, 'remaining');
   assert.equal(alerts[0].amount, monthTotals(month, state.categories).actualRemaining * -1);
@@ -105,7 +106,7 @@ test('alertes : poste, catégorie, argent restant', () => {
 test('alertes : atteindre le prévu n\'alerte pas, un poste sans prévu oui, l\'épargne jamais', () => {
   const state = emptyState();
   const month = createEmptyMonth(state, '2030-01');
-  month.incomes.push({ id: 'i', name: 'i', amount: 100000 });
+  month.incomes.push({ id: 'i', name: 'i', planned: 100000, actual: 100000 });
   month.expenses.push(expense('exact', 'cat-logement', 5000, 5000));
   assert.equal(monthAlerts(month, state.categories).length, 0);
   month.expenses.push(expense('extra', 'cat-courses', 0, 1));
@@ -118,7 +119,7 @@ test('alertes : atteindre le prévu n\'alerte pas, un poste sans prévu oui, l\'
 test('création d\'un nouveau mois : copie des revenus et dépenses fixes', () => {
   const state = sampleState();
   const copied = copyFromPrevious(state, '2030-02');
-  assert.deepEqual(copied.incomes.map((i) => [i.name, i.amount]), [['Paie', 200000], ['Prime', 5050]]);
+  assert.deepEqual(copied.incomes.map((i) => [i.name, i.planned, i.actual]), [['Paie', 200000, 0], ['Prime', 5050, 0]]);
   assert.deepEqual(copied.expenses.map((e) => e.name), ['rent', 'food', 'pea']);
   assert.ok(copied.expenses.every((e) => e.actual === 0 && e.note === ''));
   assert.deepEqual(copied.expenses.map((e) => e.planned), [80000, 30000, 20000]);
@@ -129,7 +130,7 @@ test('création d\'un nouveau mois : la source reste intacte et les identifiants
   const state = sampleState();
   const before = JSON.stringify(state.months['2030-01']);
   const copied = copyFromPrevious(state, '2030-02');
-  copied.incomes[0].amount = 1;
+  copied.incomes[0].planned = 1;
   copied.expenses[0].planned = 1;
   assert.equal(JSON.stringify(state.months['2030-01']), before);
   assert.notEqual(copied.expenses[0].id, 'rent');
@@ -229,12 +230,13 @@ test('comparaison entre deux mois : écarts en euros et en pourcentage', () => {
   assert.equal(rent.pct, 0.1);
   const food = rows.find((r) => r.category.id === 'cat-courses');
   assert.deepEqual([food.diff, food.pct], [-12345, -1]);
-  assert.equal(summary.income.diff, 0);
+  assert.equal(summary.income.diff, -205050, 'le réel d\'un mois copié repart de zéro');
   assert.equal(summary.expenses.a, 107345);
   assert.equal(summary.expenses.b, 88000);
   assert.equal(summary.savings.diff, -5000);
 
   const planned = compareMonths(state, '2030-01', '2030-02', 'planned');
+  assert.equal(planned.summary.income.diff, 0);
   assert.equal(planned.summary.expenses.diff, -10000);
   const fresh = compareMonths(state, '2030-02', '2030-01', 'actual').rows.find((r) => r.category.id === 'cat-loisirs');
   assert.equal(fresh.pct, null, 'pas de pourcentage depuis zéro');
@@ -288,7 +290,7 @@ test('import : nettoie les données douteuses', () => {
       '2030-13': { incomes: [], expenses: [] },
       __proto__x: {},
       '2030-01': {
-        incomes: [{ name: 'i', amount: -5 }, { name: 'j', amount: 12.5 }],
+        incomes: [{ name: 'i', planned: -5, actual: -5 }, { name: 'j', planned: 12.5, actual: 12.5 }],
         expenses: [
           { id: 'dup', name: 'a', categoryId: 'absente', planned: '100', actual: 5, type: 'bizarre' },
           { id: 'dup', name: 'b', categoryId: 'c1', planned: 1, actual: 1, type: 'oneoff' },
@@ -303,7 +305,7 @@ test('import : nettoie les données douteuses', () => {
   assert.ok(state.categories.some((c) => c.savings));
   assert.deepEqual(Object.keys(state.months), ['2030-01']);
   const month = state.months['2030-01'];
-  assert.deepEqual(month.incomes.map((i) => i.amount), [0, 0]);
+  assert.deepEqual(month.incomes.map((i) => [i.planned, i.actual]), [[0, 0], [0, 0]]);
   assert.equal(month.expenses.length, 2);
   assert.equal(month.expenses[0].categoryId, OTHER_CATEGORY_ID);
   assert.equal(month.expenses[0].planned, 0);
@@ -336,4 +338,42 @@ test('graduations des graphiques', () => {
   assert.ok(ticks.at(-1) >= 411100);
   assert.ok(ticks.includes(0));
   assert.deepEqual(niceTicks(0, 0), [0, 10000]);
+});
+
+test('revenus : prévu et réel comptés séparément', () => {
+  const state = emptyState();
+  const month = createEmptyMonth(state, '2030-01');
+  month.incomes.push({ id: 'i', name: 'i', planned: 200000, actual: 150000 });
+  month.expenses.push(expense('pea', SAVINGS_CATEGORY_ID, 20000, 30000));
+  const t = monthTotals(month, state.categories);
+  assert.equal(t.plannedRemaining, 180000);
+  assert.equal(t.actualRemaining, 120000);
+  assert.equal(t.plannedSavingsRate, 0.1);
+  assert.equal(t.actualSavingsRate, 0.2);
+
+  const other = createEmptyMonth(state, '2030-02');
+  other.incomes.push({ id: 'j', name: 'j', planned: 210000, actual: 100000 });
+  assert.equal(compareMonths(state, '2030-01', '2030-02', 'planned').summary.income.diff, 10000);
+  assert.equal(compareMonths(state, '2030-01', '2030-02', 'actual').summary.income.diff, -50000);
+});
+
+test('import : un revenu à montant unique devient prévu et réel, sans rien changer aux totaux', () => {
+  const backup = JSON.stringify({
+    app: 'budget-mensuel',
+    version: 1,
+    data: { categories: [], months: { '2030-01': { incomes: [{ id: 'i', name: 'Paie', amount: 200000 }], expenses: [] } } },
+  });
+  const state = parseBackup(backup);
+  assert.deepEqual(state.months['2030-01'].incomes, [{ id: 'i', name: 'Paie', planned: 200000, actual: 200000 }]);
+  const t = monthTotals(state.months['2030-01'], state.categories);
+  assert.equal(t.plannedRemaining, 200000);
+  assert.equal(t.actualRemaining, 200000);
+});
+
+test('import : le nouveau format est conservé tel quel, y compris un réel à zéro', () => {
+  const state = normalizeState({
+    categories: [],
+    months: { '2030-01': { incomes: [{ id: 'i', name: 'Paie', planned: 200000, actual: 0 }], expenses: [] } },
+  });
+  assert.deepEqual(state.months['2030-01'].incomes, [{ id: 'i', name: 'Paie', planned: 200000, actual: 0 }]);
 });
