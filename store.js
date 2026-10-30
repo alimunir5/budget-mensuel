@@ -196,11 +196,13 @@ export function monthAlerts(month, categories) {
   return alerts;
 }
 
-// Répartition des dépenses (hors épargne) pour le donut. basis : 'actual' ou 'planned'.
+// Répartition des dépenses (hors épargne) pour le donut, de la plus grande part à la plus petite.
+// À montant égal, l'ordre des réglages est conservé. basis : 'actual' ou 'planned'.
 export function expensesByCategory(month, categories, basis) {
   const groups = categoryBreakdown(month, categories)
     .filter((g) => !g.category.savings && g[basis] > 0)
-    .map((g) => ({ category: g.category, amount: g[basis] }));
+    .map((g) => ({ category: g.category, amount: g[basis] }))
+    .sort((a, b) => b.amount - a.amount);
   const total = sum(groups, (g) => g.amount);
   return { total, slices: groups.map((g) => ({ ...g, share: g.amount / total })) };
 }

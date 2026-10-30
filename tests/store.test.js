@@ -207,9 +207,15 @@ test('donut : par catégorie, sans épargne, parts complètes', () => {
   const month = state.months['2030-01'];
   const actual = expensesByCategory(month, state.categories, 'actual');
   assert.equal(actual.total, 107345);
-  assert.deepEqual(actual.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', 'cat-loisirs']);
+  assert.deepEqual(actual.slices.map((s) => s.category.id), ['cat-logement', 'cat-loisirs', 'cat-courses']);
   assert.ok(Math.abs(actual.slices.reduce((t, s) => t + s.share, 0) - 1) < 1e-9);
-  assert.equal(expensesByCategory(month, state.categories, 'planned').total, 120000);
+  const planned = expensesByCategory(month, state.categories, 'planned');
+  assert.equal(planned.total, 120000);
+  assert.deepEqual(planned.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', 'cat-loisirs']);
+
+  month.expenses.find((e) => e.id === 'trip').actual = 12345;
+  const tied = expensesByCategory(month, state.categories, 'actual');
+  assert.deepEqual(tied.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', 'cat-loisirs'], 'à égalité, ordre des réglages');
 });
 
 test('regroupement par catégorie', () => {
