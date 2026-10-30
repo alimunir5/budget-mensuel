@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr" data-style="sobre" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Budget mensuel</title>
+  <meta name="description" content="Suivi de budget mensuel, stocké uniquement sur votre appareil.">
+  <meta name="theme-color" content="#f5f5f4">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Budget">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Applique le thème avant le premier affichage pour éviter un flash.
+    (function () {
+      var settings = {};
+      try { settings = JSON.parse(localStorage.getItem('budget-mensuel.v1')).settings || {}; } catch (e) {}
+      var mode = settings.mode || 'auto';
+      if (mode === 'auto') mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.style = settings.style || 'sobre';
+      document.documentElement.dataset.mode = mode;
+    })();
+  </script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main id="view"></main>
+
+  <button id="fab" type="button" class="fab" data-action="quick-add" aria-label="Ajout rapide" hidden>
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  </button>
+
+  <nav id="tabs" class="tabs" aria-label="Navigation principale" hidden>
+    <button type="button" data-action="tab" data-view="month">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>
+      <span>Mois</span><i class="tab-dot" id="tab-alert" hidden></i>
+    </button>
+    <button type="button" data-action="tab" data-view="charts">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>
+      <span>Graphiques</span>
+    </button>
+    <button type="button" data-action="tab" data-view="compare">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg>
+      <span>Comparer</span>
+    </button>
+    <button type="button" data-action="tab" data-view="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      <span>Réglages</span>
+    </button>
+  </nav>
+
+  <dialog id="sheet" class="sheet"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <input id="import-file" type="file" accept=".json,application/json,text/plain" hidden>
+</body>
+</html>

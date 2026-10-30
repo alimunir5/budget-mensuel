@@ -1,0 +1,4 @@
+# Données personnelles : ne jamais publier (GitHub Pages est public).
+seed.json
+tests/seed.test.js
+node_modules/
