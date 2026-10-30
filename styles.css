@@ -274,7 +274,6 @@ small { font-size: .8125rem; color: var(--ink-2); font-weight: 400; }
 .group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 16px 6px; }
 .group-head h3 { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 700; min-width: 0; }
 .group-total { font-weight: 600; font-size: .9375rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.group-hint { padding: 0 16px 4px; font-size: .8125rem; color: var(--ink-2); }
 
 .line {
   display: block;

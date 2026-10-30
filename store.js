@@ -142,13 +142,12 @@ function savingsIds(categories) {
 export function monthTotals(month, categories) {
   const savings = savingsIds(categories);
   const isSavings = (e) => savings.has(e.categoryId);
-  const expenses = month.expenses.filter((e) => !isSavings(e));
   const saved = month.expenses.filter(isSavings);
 
   const plannedIncome = sum(month.incomes, (i) => i.planned);
   const actualIncome = sum(month.incomes, (i) => i.actual);
-  const plannedExpenses = sum(expenses, (e) => e.planned);
-  const actualExpenses = sum(expenses, (e) => e.actual);
+  const plannedExpenses = sum(month.expenses, (e) => e.planned);
+  const actualExpenses = sum(month.expenses, (e) => e.actual);
   const plannedSavings = sum(saved, (e) => e.planned);
   const actualSavings = sum(saved, (e) => e.actual);
 
@@ -159,8 +158,8 @@ export function monthTotals(month, categories) {
     actualExpenses,
     plannedSavings,
     actualSavings,
-    plannedRemaining: plannedIncome - plannedExpenses - plannedSavings,
-    actualRemaining: actualIncome - actualExpenses - actualSavings,
+    plannedRemaining: plannedIncome - plannedExpenses,
+    actualRemaining: actualIncome - actualExpenses,
     plannedSavingsRate: plannedIncome > 0 ? plannedSavings / plannedIncome : null,
     actualSavingsRate: actualIncome > 0 ? actualSavings / actualIncome : null,
   };
@@ -196,11 +195,11 @@ export function monthAlerts(month, categories) {
   return alerts;
 }
 
-// Répartition des dépenses (hors épargne) pour le donut, de la plus grande part à la plus petite.
+// Répartition des dépenses, épargne comprise, pour le donut, de la plus grande part à la plus petite.
 // À montant égal, l'ordre des réglages est conservé. basis : 'actual' ou 'planned'.
 export function expensesByCategory(month, categories, basis) {
   const groups = categoryBreakdown(month, categories)
-    .filter((g) => !g.category.savings && g[basis] > 0)
+    .filter((g) => g[basis] > 0)
     .map((g) => ({ category: g.category, amount: g[basis] }))
     .sort((a, b) => b.amount - a.amount);
   const total = sum(groups, (g) => g.amount);

@@ -74,8 +74,8 @@ test('totaux, argent restant et taux d\'épargne', () => {
   const t = monthTotals(state.months['2030-01'], state.categories);
   assert.equal(t.plannedIncome, 205050);
   assert.equal(t.actualIncome, 205050);
-  assert.equal(t.plannedExpenses, 120000);
-  assert.equal(t.actualExpenses, 107345);
+  assert.equal(t.plannedExpenses, 140000);
+  assert.equal(t.actualExpenses, 112345);
   assert.equal(t.plannedSavings, 20000);
   assert.equal(t.actualSavings, 5000);
   assert.equal(t.plannedRemaining, 65050);
@@ -206,16 +206,16 @@ test('donut : par catégorie, sans épargne, parts complètes', () => {
   const state = sampleState();
   const month = state.months['2030-01'];
   const actual = expensesByCategory(month, state.categories, 'actual');
-  assert.equal(actual.total, 107345);
-  assert.deepEqual(actual.slices.map((s) => s.category.id), ['cat-logement', 'cat-loisirs', 'cat-courses']);
+  assert.equal(actual.total, 112345);
+  assert.deepEqual(actual.slices.map((s) => s.category.id), ['cat-logement', 'cat-loisirs', 'cat-courses', SAVINGS_CATEGORY_ID]);
   assert.ok(Math.abs(actual.slices.reduce((t, s) => t + s.share, 0) - 1) < 1e-9);
   const planned = expensesByCategory(month, state.categories, 'planned');
-  assert.equal(planned.total, 120000);
-  assert.deepEqual(planned.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', 'cat-loisirs']);
+  assert.equal(planned.total, 140000);
+  assert.deepEqual(planned.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', SAVINGS_CATEGORY_ID, 'cat-loisirs']);
 
   month.expenses.find((e) => e.id === 'trip').actual = 12345;
   const tied = expensesByCategory(month, state.categories, 'actual');
-  assert.deepEqual(tied.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', 'cat-loisirs'], 'à égalité, ordre des réglages');
+  assert.deepEqual(tied.slices.map((s) => s.category.id), ['cat-logement', 'cat-courses', 'cat-loisirs', SAVINGS_CATEGORY_ID], 'à égalité, ordre des réglages');
 });
 
 test('regroupement par catégorie', () => {
@@ -246,7 +246,7 @@ test('comparaison entre deux mois : écarts en euros et en pourcentage', () => {
   const food = rows.find((r) => r.category.id === 'cat-courses');
   assert.deepEqual([food.diff, food.pct], [-12345, -1]);
   assert.equal(summary.income.diff, -205050, 'le réel d\'un mois copié repart de zéro');
-  assert.equal(summary.expenses.a, 107345);
+  assert.equal(summary.expenses.a, 112345);
   assert.equal(summary.expenses.b, 88000);
   assert.equal(summary.savings.diff, -5000);
 

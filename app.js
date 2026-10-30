@@ -185,7 +185,7 @@ function recapCard(t) {
         <tbody>
           <tr><th scope="row">Revenus</th><td>${formatEuro(t.plannedIncome)}</td><td>${formatEuro(t.actualIncome)}</td></tr>
           <tr><th scope="row">Dépenses</th><td>${formatEuro(t.plannedExpenses)}</td><td>${formatEuro(t.actualExpenses)}</td></tr>
-          <tr><th scope="row">Épargne</th><td>${formatEuro(t.plannedSavings)}</td><td>${formatEuro(t.actualSavings)}</td></tr>
+          <tr><th scope="row">dont épargne</th><td>${formatEuro(t.plannedSavings)}</td><td>${formatEuro(t.actualSavings)}</td></tr>
           <tr><th scope="row">Taux d'épargne</th><td>${rate(t.plannedSavingsRate)}</td><td>${rate(t.actualSavingsRate)}</td></tr>
         </tbody>
       </table>
@@ -237,7 +237,6 @@ function expenseGroup(group) {
         <h3><i class="swatch"></i>${esc(category.name)}</h3>
         <span class="group-total${over ? ' is-negative' : ''}">${over ? '⚠ ' : ''}${formatEuro(actual)} <small>/ ${formatEuro(planned)}</small></span>
       </header>
-      ${savings ? '<p class="group-hint">Compté à part des dépenses</p>' : ''}
       ${lines.map((line) => expenseRow(line, savings)).join('')}
       <button type="button" class="add-line" data-action="edit-expense" data-category="${esc(category.id)}">+ Ajouter à ${esc(category.name)}</button>
     </section>`;
@@ -627,7 +626,7 @@ function renderCompare() {
       <ul class="compare-list">
         ${row('Revenus', summary.income, true)}
         ${row('Dépenses', summary.expenses, false)}
-        ${row('Épargne', summary.savings, true)}
+        ${row('dont épargne', summary.savings, true)}
         ${row('Argent restant', summary.remaining, true)}
       </ul>
     </section>
