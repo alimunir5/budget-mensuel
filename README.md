@@ -1,7 +1,6 @@
 # Budget mensuel
 
-PWA de suivi de budget mensuel, pensée pour l'iPhone. HTML, CSS et JS sans étape de build.
-Les données restent dans le `localStorage` de l'appareil : rien n'est envoyé à un serveur.
+Pour suivre chaque mois le budget prévu et les dépenses réelles sans confier ses données à un service en ligne, cette PWA pensée pour l'iPhone, écrite en HTML, CSS et JavaScript sans étape de build, fonctionne hors ligne et garde tout dans le `localStorage` de l'appareil.
 
 ## Déployer sur GitHub Pages
 
