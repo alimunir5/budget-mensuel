@@ -9,6 +9,7 @@ export const SAVINGS_CATEGORY_ID = 'cat-epargne';
 
 export const STYLES = ['sobre', 'colore', 'doux'];
 export const MODES = ['light', 'dark', 'auto'];
+export const APP_NOTES_MAX = 10000;
 
 export const DEFAULT_CATEGORIES = [
   { id: 'cat-logement', name: 'Logement', color: '#2a78d6' },
@@ -34,7 +35,7 @@ export function emptyState() {
   return {
     categories: DEFAULT_CATEGORIES.map((c) => ({ ...c })),
     months: {},
-    settings: { style: 'sobre', mode: 'auto', lastBackupAt: null },
+    settings: { style: 'sobre', mode: 'auto', lastBackupAt: null, appNotes: '' },
   };
 }
 
@@ -397,6 +398,7 @@ export function normalizeState(raw) {
       style: STYLES.includes(settings.style) ? settings.style : 'sobre',
       mode: MODES.includes(settings.mode) ? settings.mode : 'auto',
       lastBackupAt: Number.isFinite(settings.lastBackupAt) ? settings.lastBackupAt : null,
+      appNotes: text(settings.appNotes, APP_NOTES_MAX),
     },
   };
 }

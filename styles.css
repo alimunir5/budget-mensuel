@@ -536,6 +536,18 @@ button.line:active { background: color-mix(in srgb, var(--ink) 6%, transparent);
 .category-row input[type="text"] { flex: 1; min-width: 0; margin-left: 8px; padding-inline: 8px; }
 .category-row input[type="color"] { width: 36px; height: 36px; flex: none; padding: 0; border: 0; background: none; border-radius: 50%; cursor: pointer; }
 .category-row .icon-btn { width: 36px; }
+.notes-input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  font-size: 16px; /* En dessous de 16 px, iOS zoome à la saisie. */
+  resize: vertical;
+}
 
 /* ---------- Animations ---------- */
 

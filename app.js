@@ -1,7 +1,7 @@
 // Interface : un rendu par écran, des panneaux d'édition et une délégation d'événements.
 
 import {
-  addCategory, amountToInput, categoryBreakdown, compareMonths, copyFromPrevious, createEmptyMonth, createStore,
+  addCategory, amountToInput, APP_NOTES_MAX, categoryBreakdown, compareMonths, copyFromPrevious, createEmptyMonth, createStore,
   deleteCategory, emptyState, evolution, expensesByCategory, formatEuro, formatPercent, hasLines, initialMonth,
   isProtectedCategory, monthAlerts, monthKeyOf, monthKeysWithData, monthLabel, monthTotals, moveExpense, moveItem,
   parseAmount, parseBackup, previousMonthWithData, quickAdd, serialize, shiftMonth, undoQuickAdd, uid,
@@ -643,7 +643,7 @@ function renderCompare() {
 const backupDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
 
 function renderSettings() {
-  const { style, mode, lastBackupAt } = state.settings;
+  const { style, mode, lastBackupAt, appNotes } = state.settings;
   const categories = state.categories.map((c) => `
     <li class="category-row">
       <input type="color" value="${esc(c.color)}" data-change="category-color" data-id="${esc(c.id)}" aria-label="Couleur de ${esc(c.name)}">
@@ -674,6 +674,11 @@ function renderSettings() {
       <p class="muted">Vos données restent uniquement sur cet appareil. ${lastBackupAt ? `Dernier export : ${esc(backupDate.format(lastBackupAt))}.` : 'Aucun export pour le moment.'}</p>
       <button type="button" class="btn btn-primary" data-action="export">Exporter en JSON</button>
       <button type="button" class="btn" data-action="import">Importer un JSON</button>
+    </section>
+    <section class="card">
+      <h2>Idées pour l'app</h2>
+      <textarea class="notes-input" data-input="app-notes" rows="6" maxlength="${APP_NOTES_MAX}" aria-label="Idées pour faire évoluer l'application" placeholder="Une idée, un bug, une amélioration…">${esc(appNotes)}</textarea>
+      <p class="muted">Enregistré automatiquement et inclus dans les sauvegardes.</p>
     </section>
     <section class="card">
       <h2>Zone sensible</h2>
@@ -804,7 +809,7 @@ const actions = {
     applyTheme();
     commit();
   },
-  reset: () => confirmSheet('Tout effacer ?', 'Tous les mois, catégories et réglages de cet appareil seront supprimés. Exportez une sauvegarde avant si besoin.', 'Tout effacer', () => {
+  reset: () => confirmSheet('Tout effacer ?', 'Tous les mois, catégories, réglages et notes de cet appareil seront supprimés. Exportez une sauvegarde avant si besoin.', 'Tout effacer', () => {
     store.clear();
     state = null;
     applyTheme();
@@ -832,6 +837,13 @@ document.addEventListener('click', (event) => {
 document.addEventListener('change', (event) => {
   const target = event.target.closest('[data-change]');
   if (target) changes[target.dataset.change]?.(target.value, target.dataset, target);
+});
+
+// Pas de commit() ici : un nouveau rendu ferait perdre le focus et le clavier à chaque frappe.
+document.addEventListener('input', (event) => {
+  if (event.target.dataset.input !== 'app-notes') return;
+  state.settings.appNotes = event.target.value;
+  if (!store.save(state)) toast("Impossible d'enregistrer : le stockage de l'appareil est plein ou bloqué.");
 });
 
 importInput.addEventListener('change', () => {

@@ -290,6 +290,15 @@ test('export puis import : aller-retour sans perte', () => {
   assert.deepEqual(restored, state);
 });
 
+test('notes sur l\'app : conservées à l\'export et à la relecture, absentes des anciennes sauvegardes', () => {
+  const state = sampleState();
+  state.settings.appNotes = 'Ajouter un mode "annuel"\n<b>ligne 2</b>';
+  assert.equal(parseBackup(serialize(state)).settings.appNotes, state.settings.appNotes);
+  assert.equal(normalizeState(JSON.parse(JSON.stringify(state))).settings.appNotes, state.settings.appNotes);
+  assert.equal(normalizeState({ categories: [], months: {}, settings: { style: 'doux' } }).settings.appNotes, '');
+  assert.equal(normalizeState({ categories: [], months: {}, settings: { appNotes: 42 } }).settings.appNotes, '');
+});
+
 test('import : refuse les fichiers invalides', () => {
   assert.throws(() => parseBackup('pas du json'), /JSON valide/);
   assert.throws(() => parseBackup('{"app":"autre","version":1}'), /sauvegarde de cette application/);
